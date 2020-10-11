@@ -1,12 +1,11 @@
 package com.company;
-
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 public class Main {
 
     public static void main(String[] args) {
 	// write your code here
-        int x = 32;
-        int t = fibLoop(32);fibMatrix(x);
-        System.out.println(t);
+        results();
     }
     public static int fibRecur(int x){
         if(x<=1){
@@ -66,6 +65,115 @@ public class Main {
         F[1][1] = w;
     }
     public static void results(){
+        int trialnum = 5;
+        boolean continuefibMatrix = true;
+        boolean continuefibCache = true;
+        boolean continuefibLoop = true;
+        boolean continuefibRecur = true;
+        boolean con = true;
+        double[] FibRecurTime = new double[10000];
+        double[] FibLoopTime = new double[10000];
+        double[] FibCacheTime = new double[10000];
+        double[] FibMatrixTime = new double[10000];
+        double[] FibRecurDR = new double[10000];
+        double[] FibLoopDR = new double[10000];
+        double[] FibCacheDR = new double[10000];
+        double[] FibMatrixDR = new double[10000];
+        double[] FibRecurEDR = new double[10000];
+        double[] FibLoopEDR = new double[10000];
+        double[] FibCacheEDR = new double[10000];
+        double[] FibMatrixEDR = new double[10000];
+        int[] xVal = new int[10000];
+        int[] NVal = new int[10000];
+        double timeBefore = getCpuTime();
+        double timeAfter = getCpuTime();
+        double timeNot = timeAfter-timeBefore;
+        double avg = 0;
+        int x = 1;
+        int count = 0;
+        while(con){
+            if(count >= xVal.length){
+                continuefibMatrix = false;
+                continuefibCache = false;
+                continuefibLoop = false;
+                continuefibRecur = false;
+                con = false;
+            }else{
+                xVal[count] = x;
+            }
+            if(continuefibRecur){
+                for(int i = 0; i < trialnum; i++){
+                    timeBefore = getCpuTime();
+                    fibRecur(x);
+                    timeAfter = getCpuTime();
+                    avg += timeAfter - timeBefore ;
+                }
+                avg = avg/trialnum;
+                FibRecurTime[count] = avg;
+                if(FibRecurTime[count] > 900000){
+                    continuefibRecur = false;
+                }
+                avg = 0;
+            }
+            if(continuefibLoop){
+                for(int i = 0; i < trialnum; i++){
+                    timeBefore = getCpuTime();
+                    fibLoop(x);
+                    timeAfter = getCpuTime();
+                    avg += timeAfter - timeBefore ;
+                }
+                avg = avg/trialnum;
+                FibLoopTime[count] = avg;
+                if(FibLoopTime[count] > 900000){
+                    continuefibLoop = false;
+                }
+                avg = 0;
+            }
+            if(continuefibCache){
+                for(int i = 0; i < trialnum; i++){
+                    timeBefore = getCpuTime();
+                    fibCache(x);
+                    timeAfter = getCpuTime();
+                    avg += timeAfter - timeBefore ;
+                }
+                avg = avg/trialnum;
+                FibCacheTime[count] = avg;
+                if(FibCacheTime[count] > 900000){
+                    continuefibCache = false;
+                }
+                avg = 0;
+            }
+            if(continuefibMatrix){
+                for(int i = 0; i < trialnum; i++){
+                    timeBefore = getCpuTime();
+                    fibMatrix(x);
+                    timeAfter = getCpuTime();
+                    avg += timeAfter - timeBefore ;
+                }
+                avg = avg/trialnum;
+                FibMatrixTime[count] = avg;
+                if(FibMatrixTime[count] > 900000){
+                    continuefibMatrix = false;
+                }
+                avg = 0;
+            }
+            if(!continuefibCache && !continuefibLoop && !continuefibMatrix && !continuefibRecur){
+                con = false;
+            }
+            //N val calculation here
+            count++;
+            x++;
+        }
+        count--;
+
+    }
+    public static long getCpuTime( ) {
+
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
+
+        return ((ThreadMXBean) bean).isCurrentThreadCpuTimeSupported( ) ?
+
+                bean.getCurrentThreadCpuTime( ) : 0L;
 
     }
 }
