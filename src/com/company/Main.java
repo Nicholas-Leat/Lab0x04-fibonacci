@@ -3,62 +3,75 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.lang.Math;
 public class Main {
+    //amount of trials to get average time
+    static int trialnum = 100;
+    //the values for x
+    //92 the max for longs
+    static int len = 92;
+    //max time allowed
+    static int mxTime = 20000000;
+    //cache
+    static long[] cacheVal = new long[len];
 
     public static void main(String[] args) {
 	// write your code here
         results();
     }
-    public static int fibRecur(int x){
+    public static long fibRecur(int x){
         if(x<=1){
             return x;
         }
         return fibRecur(x-1) + fibRecur(x-2);
     }
-    public static int fibCache(int x){
-        int f[] = new int[x+2];
-        if(x == 0){
-            return 0;
-        }
-        f[0] = 0;
-        f[1] = 1;
-        for(int i = 2; i <= x; i++){
-            f[i] = f[i-1]+f[i-2];
+    public static long fibCache(int x){
+        for(int i = 0; i < len; i++){
+            cacheVal[i] = -1;
         }
 
-        return f[x];
+        return fibCacheHelp(x);
     }
-    public static int fibLoop(int x){
-        int sum = 0,t1 =0,t2 =1;
-        if(x == 0){
-            return sum;
+    public static long fibCacheHelp(int x){
+        if(x==0 || x==1){
+            return x;
+        }else if(cacheVal[x-1] != -1){
+            return cacheVal[x-1];
+        }else{
+            cacheVal[x-1] = fibCacheHelp(x-1) + fibCacheHelp(x-2);
+            return cacheVal[x-1];
         }
-        for(int i = 1; i <x; i++){
+    }
+    public static long fibLoop(int x){
+        long t1 = 0,t2 = 1,sum;
+        if(x == 0){
+            return t1;
+        }
+        for(int i = 2; i <=x; i++){
             sum = t1+t2;
             t1 = t2;
             t2 = sum;
         }
         return t2;
     }
-    public static int fibMatrix(int x){
-        int F[][] = new int[][]{{1,1},{1,0}};
+    public static long fibMatrix(int x){
+        long F[][] = new long[][]{{1,1},{1,0}};
         if(x == 0){
             return 0;
         }
         power(F,x-1);
         return F[0][0];
     }
-    public static void power(int F[][], int x){
+    public static void power(long F[][], int x){
         int i;
-        int M[][] = new int[][]{{1,1},{1,0}};
+        long M[][] = new long[][]{{1,1},{1,0}};
         for(i = 2; i <= x;i++){
             multiply(F,M);
         }
     }
-    public static void multiply(int F[][], int M[][]){
-        int x = F[0][0]*M[0][0] + F[0][1]*M[1][0];
-        int y = F[0][0]*M[0][1] + F[0][1]*M[1][1];
-        int z = F[1][0]*M[0][0] + F[1][1]*M[1][0];
-        int w = F[1][0]*M[0][1] + F[1][1]*M[1][1];
+    public static void multiply(long F[][], long M[][]){
+        long x = F[0][0]*M[0][0] + F[0][1]*M[1][0];
+        long y = F[0][0]*M[0][1] + F[0][1]*M[1][1];
+        long z = F[1][0]*M[0][0] + F[1][1]*M[1][0];
+        long w = F[1][0]*M[0][1] + F[1][1]*M[1][1];
 
         F[0][0] = x;
         F[0][1] = y;
@@ -66,12 +79,7 @@ public class Main {
         F[1][1] = w;
     }
     public static void results(){
-        //amount of trials to get average time
-        int trialnum = 5;
-        //the values for x
-        int len = 100;
-        //max time allowed
-        int mxTime = 2000000;
+
 
         boolean continuefibMatrix = true;
         boolean continuefibCache = true;
@@ -91,7 +99,7 @@ public class Main {
         double[] FibCacheEDR = new double[len];
         double[] FibMatrixEDR = new double[len];
         int[] xVal = new int[len];
-        int[] NVal = new int[len];
+        long[] NVal = new long[len];
         double timeBefore = getCpuTime();
         double timeAfter = getCpuTime();
         double timeNot = timeAfter-timeBefore;
@@ -105,7 +113,7 @@ public class Main {
         System.out.format("%-20s %-90s %-90s %-90s %-90s\n"," ", "FibRecur", "FibCache", "FibLoop", "FibMatrix");
         System.out.format("%-10s %-9s %-30s %-30s %-28s %-30s %-30s %-28s %-30s %-30s %-28s %-30s %-30s %-30s\n", "X","N","Time","Doubling Ratio","Expected Doubling Ratio","Time","Doubling Ratio","Expected Doubling Ratio","Time","Doubling Ratio","Expected Doubling Ratio","Time","Doubling Ratio","Expected Doubling Ratio");
         while(con){
-            if(count >= xVal.length){
+            if(count >= len){
                 break;
             }else{
                 NVal[count] = (int) Math.ceil(Math.log(2*(x+1)));
@@ -124,9 +132,9 @@ public class Main {
                     continuefibRecur = false;
                 }
                 avg = 0;
-                if(count != 0) {
+                if(count > 1) {
                     FibRecurDR[count] = FibRecurTime[count] / FibRecurTime[x / 2];
-                    FibRecurEDR[count] = 0;
+                    FibRecurEDR[count] = FibRecurDR[count-1] + FibRecurDR[count-2];
                 }
             }
             if(continuefibLoop){
@@ -144,7 +152,7 @@ public class Main {
                 avg = 0;
                 if(count != 0) {
                     FibLoopDR[count] = FibLoopTime[count] / FibLoopTime[x / 2];
-                    FibLoopEDR[count] = 0;
+                    FibLoopEDR[count] = x/(x/2);
                 }
             }
             if(continuefibCache){
@@ -162,7 +170,7 @@ public class Main {
                 avg = 0;
                 if(count != 0) {
                     FibCacheDR[count] = FibCacheTime[count] / FibCacheTime[x / 2];
-                    FibCacheEDR[count] = 0;
+                    FibCacheEDR[count] = x/(x/2);
                 }
             }
             if(continuefibMatrix){
@@ -180,7 +188,7 @@ public class Main {
                 avg = 0;
                 if(count != 0) {
                     FibMatrixDR[count] = FibMatrixTime[count] / FibMatrixTime[x / 2];
-                    FibMatrixEDR[count] = 0;
+                    FibMatrixEDR[count] = Math.log(x)/Math.log(x/2);
                 }
             }
             if(!continuefibCache && !continuefibLoop && !continuefibMatrix && !continuefibRecur){
@@ -195,10 +203,12 @@ public class Main {
                 FibRecurEDR[0] = 0;
                 FibMatrixDR[0] = 0;
                 FibMatrixEDR[0] = 0;
+            }if(count ==1){
+                FibCacheEDR[1] = 1;
             }
 
             if(con) {
-                System.out.format("%-10s %-9s %-30s %-30s %-28s %-30s %-30s %-28s %-30s %-30s %-28s %-30s %-30s %-30s\n", xVal[count], NVal[count], FibRecurTime[count], FibRecurDR[count], FibRecurEDR[count], FibCacheTime[count], FibCacheDR[count], FibCacheEDR[count], FibLoopTime[count], FibLoopDR[count], FibLoopEDR[count], FibMatrixTime[count], FibMatrixDR[count], FibMatrixEDR[count]);
+                System.out.format("%-10d %-9d %-30f %-30f %-28f %-30f %-30f %-28f %-30f %-30f %-28f %-30f %-30f %-30f\n", xVal[count], NVal[count], FibRecurTime[count], FibRecurDR[count], FibRecurEDR[count], FibCacheTime[count], FibCacheDR[count], FibCacheEDR[count], FibLoopTime[count], FibLoopDR[count], FibLoopEDR[count], FibMatrixTime[count], FibMatrixDR[count], FibMatrixEDR[count]);
             }
             count++;
             x++;
